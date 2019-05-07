@@ -1,31 +1,27 @@
 const express = require('express')
 
 const UserController = require('./controllers/UserController')
-const CategoryController = require('./controllers/CategoryController')
-const ArticleController = require('./controllers/ArticleController')
+const StatisticsController = require('./controllers/StatisticsController')
+const UserRoutes = require('./routes/user')
+const ArticleRoutes = require('./routes/articles')
+const CategoryRoutes = require('./routes/categories')
+const AuthController = require('./controllers/AuthController')
 
 const routes = express.Router()
 
-//User routes
-routes.get('/users', UserController.index)
-routes.post('/users', UserController.store)
-routes.get('/users/:id', UserController.show)
-routes.put('/users/:id', UserController.update)
-routes.delete('/users/:id', UserController.destroy)
+//Authentication
+routes.post('/signup', UserController.store)
+routes.post('/signin', AuthController.signin)
 
-//Category routes
-routes.get('/categories', CategoryController.index)
-routes.post('/categories', CategoryController.store)
-routes.get('/categories/:id', CategoryController.show)
-routes.put('/categories/:id', CategoryController.update)
-routes.delete('/categories/:id', CategoryController.destroy)
+routes.get('/statistics', StatisticsController.index)
+
+//User routes
+routes.use('/users', UserRoutes)
 
 //Article routes
-routes.get('/articles', ArticleController.index)
-routes.post('/articles', ArticleController.store)
-routes.get('/articles/:id', ArticleController.show)
-routes.put('/articles/:id', ArticleController.update)
-routes.delete('/articles/:id', ArticleController.destroy)
+routes.use('/articles', ArticleRoutes)
 
+//Category routes
+routes.use('/categories', CategoryRoutes)
 
 module.exports = routes

@@ -1,6 +1,6 @@
 const Categories = require('../models/Category')
 const Articles = require('../models/Article')
-
+const { validationResult } = require('express-validator/check')
 class CategoryController {
 
     constructor() {
@@ -10,6 +10,8 @@ class CategoryController {
         this.update = this.update.bind(this)
         this.destroy = this.destroy.bind(this)
         this.withPath = this.withPath.bind(this)
+        this.getTree = this.getTree.bind(this)
+        this.toTree = this.toTree.bind(this)
     }
 
     async index(req, res) {
@@ -19,11 +21,14 @@ class CategoryController {
     }
 
     async store(req, res) {
+        const errors = validationResult(req)
+        if(!errors.isEmpty()) res.status(422).json({ errors: errors.array() })
+        
         if (!req.body) return res.status(400).json({ success: false, message: 'Categories must be provided' })
 
         const category = await Categories.create(req.body)
 
-        if(category.parentId){
+        if (category.parentId) {
             const parent = await Categories.findById(category.parentId)
             parent.subcategories.push(category)
             await parent.save()
@@ -50,19 +55,19 @@ class CategoryController {
 
     async destroy(req, res) {
 
-        const subcategories = Categories.find({ parentId: req.params.id })
+        const subcategories = await Categories.find({ parentId: req.params.id })
+        
+        if (subcategories.length > 0) return res.status(400).json({ success: false, message: 'The category has subcategories' })
 
-        if (subcategories) return res.status(400).json({ success: false, message: 'The category has subcategories' })
+        const articles = await Articles.find({ category: req.params.id })
 
-        const articles = Articles.find({ categoryId: req.params.id })
-
-        if (articles) return res.status(400).json({ success: false, message: 'The category has articles' })
+        if (articles.length > 0) return res.status(400).json({ success: false, message: 'The category has articles' })
 
         await Categories.findByIdAndDelete(req.params.id)
         return res.status(204).send()
     }
 
-    async withPath(categories) {
+    withPath(categories) {
         if (!Array.isArray(categories)) {
             let arrayCategories = []
             arrayCategories.push(categories)
@@ -70,12 +75,12 @@ class CategoryController {
         }
         const categoriesWithPath = categories.map((category) => {
             let path = category.name
-            let parentFound = categories.filter(parent => parent._id == (category.parentId ? category.parentId.toString() : undefined ) )
+            let parentFound = categories.filter(parent => parent._id == (category.parentId ? category.parentId.toString() : undefined))
             let parent = parentFound.length ? parentFound[0] : null
 
             while (parent) {
                 path = `${parent.name} > ${path}`
-                parentFound = categories.filter(element => element._id == (parent.parentId ? parent.parentId.toString() : undefined ))
+                parentFound = categories.filter(element => element._id == (parent.parentId ? parent.parentId.toString() : undefined))
                 parent = parentFound.length ? parentFound[0] : null
             }
 
@@ -90,6 +95,23 @@ class CategoryController {
         })
 
         return categoriesWithPath
+    }
+
+    toTree(categories, tree) {
+        if (!tree) tree = categories.filter(c => !c.parentId)
+        tree = tree.map(parentNode => {
+            const isChild = node => node.parentId == parentNode._id.toString()
+            parentNode = { ...parentNode }._doc
+            parentNode.children = (this.toTree(categories, categories.filter(isChild)))
+            return parentNode
+        })
+        return tree
+    }
+
+    async getTree(req, res) {
+        let categories = await Categories.find()
+        let tree = this.toTree(categories)
+        return res.json(tree)
     }
 
 }

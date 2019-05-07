@@ -1,6 +1,12 @@
 const Articles = require('../models/Article')
+const Categories = require('../models/Category')
 
 class ArticleController {
+
+    constructor() {
+        this.getChildCategories = this.getChildCategories.bind(this)
+        this.articlesByCategory = this.articlesByCategory.bind(this)
+    }
 
     async index(req, res) {
         const articles = await Articles.find()
@@ -35,6 +41,24 @@ class ArticleController {
     async destroy(req, res) {
         await Articles.findByIdAndDelete(req.params.id)
         return res.status(200).send()
+    }
+
+    async articlesByCategory(req, res) {
+        let categories = await Categories.find()
+        let ids = this.getChildCategories(categories, categories.filter(c => c._id == req.params.id), [])
+        let articles = await Articles.find({
+            'category': {$in: ids}
+        }).populate('author')
+        return res.status(200).json(articles)
+    }
+
+    getChildCategories(categories, parents, ids) {
+        parents.forEach(category => {
+            const isChild = node => node.parentId == category._id.toString()
+            ids.push(category._id)
+            this.getChildCategories(categories, categories.filter(isChild), ids)
+        })
+        return ids
     }
 
 }

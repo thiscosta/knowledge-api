@@ -16,12 +16,12 @@ const ArticlesSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    userId: {
+    author: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
-    categoryId: {
+    category: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Category',
         required: true
