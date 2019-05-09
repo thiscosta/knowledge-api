@@ -12,13 +12,6 @@ routes.get('/', CategoryController.index)
 
 routes.post('/', Passport.authenticate(), [
     check('name').isLength(2),
-    body('parentId').custom(parent => {
-        return Categories.findById(parent).then(category => {
-            if (!category) {
-                return Promise.reject('The category with the id '+parent+' doesn\'t exists')
-            }
-        })
-    })
 ], admin(CategoryController.store))
 
 routes.get('/tree', CategoryController.getTree)

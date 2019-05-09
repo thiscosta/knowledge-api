@@ -1,6 +1,9 @@
 const Categories = require('../models/Category')
 const Articles = require('../models/Article')
 const { validationResult } = require('express-validator/check')
+const mongoose = require('mongoose');
+
+
 class CategoryController {
 
     constructor() {
@@ -22,19 +25,33 @@ class CategoryController {
 
     async store(req, res) {
         const errors = validationResult(req)
-        if(!errors.isEmpty()) res.status(422).json({ errors: errors.array() })
-        
+        if (!errors.isEmpty()) res.status(422).json({ errors: errors.array() })
+
         if (!req.body) return res.status(400).json({ success: false, message: 'Categories must be provided' })
 
-        const category = await Categories.create(req.body)
+        if (req.body.parentId && req.body.parentId.length) {
 
-        if (category.parentId) {
-            const parent = await Categories.findById(category.parentId)
+            if (!mongoose.Types.ObjectId.isValid(req.body.parentId)) return res.status(400).json({ success: false, message: 'The value ' + req.body.parentId + ' isn\'t a valid id' })
+
+            const parent = await Categories.findById(req.body.parentId)
+
+            if (!parent) return res.status(400).json({ success: false, message: 'The category with id ' + req.body.parentId + ' doesn\'t exist' })
+
+            const category = await Categories.create(req.body)
+
             parent.subcategories.push(category)
             await parent.save()
+
+            return res.json(category)
+
+        } else {
+            delete req.body.parentId
+
+            const category = await Categories.create(req.body)
+
+            return res.json(category)
         }
 
-        return res.json(category)
     }
 
     async show(req, res) {
@@ -56,7 +73,7 @@ class CategoryController {
     async destroy(req, res) {
 
         const subcategories = await Categories.find({ parentId: req.params.id })
-        
+
         if (subcategories.length > 0) return res.status(400).json({ success: false, message: 'The category has subcategories' })
 
         const articles = await Articles.find({ category: req.params.id })

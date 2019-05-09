@@ -16,8 +16,8 @@ class UserController {
 
     async store(req, res) {
         if (!req.body) return res.status(400).json({ success: false, message: 'User must be provided' })
-        if (!req.originalUrl.startsWith('/users')) user.admin = false
-        if (!req.user || !req.user.admin) user.admin = false
+        if (!req.originalUrl.startsWith('/users')) req.body.admin = false
+        if (!req.user || !req.user.admin) req.body.admin = false
 
         req.body.password = this.encryptPassword(req.body.password)
         delete req.body.confirmPassword
