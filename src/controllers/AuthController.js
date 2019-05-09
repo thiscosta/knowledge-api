@@ -1,4 +1,3 @@
-const { authSecret } = require('../../.env')
 const jwt = require('jwt-simple')
 const bcrypt = require('bcrypt-nodejs')
 const Users = require('../models/User')
@@ -36,7 +35,7 @@ class Auth {
 
         res.json({
             ...payload,
-            token: jwt.encode(payload, authSecret)
+            token: jwt.encode(payload, process.env.SECRET)
         })
     }
 
@@ -44,7 +43,7 @@ class Auth {
         const userData = req.body || null
         try {
             if (userData) {
-                const token = jwt.decode(userData.token, authSecret)
+                const token = jwt.decode(userData.token, process.env.SECRET)
                 if (new Date(token.exp * 1000) > new Date()) {
                     return res.send(true)
                 }
