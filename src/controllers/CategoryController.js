@@ -29,7 +29,7 @@ class CategoryController {
 
         if (!req.body) return res.status(400).json({ success: false, message: 'Categories must be provided' })
 
-        if (req.body.parentId && req.body.parentId.length) {
+        if (req.body.parentId && req.body.parentId.length > 0) {
 
             if (!mongoose.Types.ObjectId.isValid(req.body.parentId)) return res.status(400).json({ success: false, message: 'The value ' + req.body.parentId + ' isn\'t a valid id' })
 

@@ -18,4 +18,4 @@ require('./src/config/passport');
 
 app.use('/', require('./src/routes'))
 
-app.listen(process.env.PORT || 4040)
+app.listen(process.env.PORT)
