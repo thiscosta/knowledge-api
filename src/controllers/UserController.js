@@ -6,6 +6,7 @@ class UserController {
     constructor() {
         this.encryptPassword = this.encryptPassword.bind(this)
         this.store = this.store.bind(this)
+        this.update = this.update.bind(this)
     }
 
     async index(req, res) {
@@ -41,6 +42,11 @@ class UserController {
     }
 
     async update(req, res) {
+
+        if (req.body.password && req.body.password.length < 8) return res.status(400).json({ success: false, message: 'The password must contain at least 8 characters' })
+
+        req.body.password = this.encryptPassword(req.body.password)
+
         const user = await Users.findByIdAndUpdate(req.params.id, req.body, { new: true })
 
         if (!user) return res.status(404).json({ success: false, message: 'User with id ' + req.params.id + ' doesn\'t exists' })

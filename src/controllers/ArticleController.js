@@ -40,7 +40,7 @@ class ArticleController {
 
     async destroy(req, res) {
         await Articles.findByIdAndDelete(req.params.id)
-        return res.status(200).send()
+        return res.status(204).send()
     }
 
     async articlesByCategory(req, res) {
