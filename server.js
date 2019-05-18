@@ -11,7 +11,7 @@ app.use(cors())
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
-mongoose.connect(process.env.MONGO_URL, { useNewUrlParser: true })
+mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true })
 
 requireDir('./src/models')
 require('./src/config/passport');
