@@ -45,7 +45,7 @@ class UserController {
 
         if (req.body.password && req.body.password.length < 8) return res.status(400).json({ success: false, message: 'The password must contain at least 8 characters' })
 
-        req.body.password = this.encryptPassword(req.body.password)
+        if (req.body.password) req.body.password = this.encryptPassword(req.body.password)
 
         const user = await Users.findByIdAndUpdate(req.params.id, req.body, { new: true })
 
